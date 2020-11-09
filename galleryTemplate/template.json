@@ -1,0 +1,1042 @@
+{
+    "version": "Notebook/1.0",
+    "items": [
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Subscriptions}"
+          ],
+          "parameters": [
+            {
+              "id": "21dea311-7dfc-41fb-99f6-d72f0f0c33c9",
+              "version": "KqlParameterItem/1.0",
+              "name": "Subscriptions",
+              "type": 6,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::1",
+                  "value::all"
+                ],
+                "includeAll": false
+              }
+            },
+            {
+              "id": "9b289ad1-7eaa-411d-b2b0-43c69cf5aa14",
+              "version": "KqlParameterItem/1.0",
+              "name": "TimeRange",
+              "type": 4,
+              "isRequired": true,
+              "typeSettings": {
+                "selectableValues": [
+                  {
+                    "durationMs": 300000
+                  },
+                  {
+                    "durationMs": 900000
+                  },
+                  {
+                    "durationMs": 1800000
+                  },
+                  {
+                    "durationMs": 3600000
+                  },
+                  {
+                    "durationMs": 14400000
+                  },
+                  {
+                    "durationMs": 43200000
+                  },
+                  {
+                    "durationMs": 86400000
+                  },
+                  {
+                    "durationMs": 172800000
+                  },
+                  {
+                    "durationMs": 259200000
+                  },
+                  {
+                    "durationMs": 604800000
+                  },
+                  {
+                    "durationMs": 1209600000
+                  },
+                  {
+                    "durationMs": 2419200000
+                  },
+                  {
+                    "durationMs": 2592000000
+                  },
+                  {
+                    "durationMs": 5184000000
+                  },
+                  {
+                    "durationMs": 7776000000
+                  }
+                ]
+              },
+              "value": {
+                "durationMs": 86400000
+              }
+            },
+            {
+              "id": "0698db8c-7a3a-4aec-bfb2-eb59942b0375",
+              "version": "KqlParameterItem/1.0",
+              "name": "Workspace",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "where type =~ 'microsoft.operationalinsights/workspaces'",
+              "crossComponentResources": [
+                "{Subscriptions}"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": []
+              },
+              "queryType": 1,
+              "resourceType": "microsoft.resourcegraph/resources"
+            }
+          ],
+          "style": "pills",
+          "queryType": 1,
+          "resourceType": "microsoft.resourcegraph/resources"
+        },
+        "name": "parameters - 0"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "# WVD Environment"
+        },
+        "name": "text - 1"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## NoShow -Begin - Current WVD Sessions, host availability"
+        },
+        "conditionalVisibility": {
+          "parameterName": "noshow",
+          "comparison": "isEqualTo",
+          "value": "noshow"
+        },
+        "name": "text - NoShow - Begin - Current WVD "
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "Heartbeat\r\n| summarize heartbeat_count = count() by TimeGenerated,Computer // bin is used to set the time grain to 30 minutes\r\n| extend Available=iff(heartbeat_count > 0, true, false)\r\n| summarize LastCall = max(TimeGenerated) by Computer, Available\r\n| project Computer, LastCall, Available\r\n| summarize AvailableWVDMachines=count(Available)\r\n| extend jkey =1\r\n| join(\r\n    Perf\r\n        | where ObjectName == \"Terminal Services\" \r\n        | where CounterName == \"Active Sessions\" \r\n        | summarize arg_max(TimeGenerated, *) by Computer\r\n        | project CounterName, CounterValue\r\n        | summarize ActiveSessions=sum(CounterValue)\r\n        | extend jkey=1) on jkey\r\n| join(\r\n    Perf\r\n        | where ObjectName == \"Terminal Services\" \r\n        | where CounterName == \"Total Sessions\" \r\n        | summarize arg_max(TimeGenerated, *) by Computer\r\n        | project CounterName, CounterValue\r\n        | summarize TotalSessions=sum(CounterValue)\r\n        | extend jkey=1) on jkey\r\n| project-away jkey,jkey1,jkey2\r\n| evaluate narrow()",
+          "size": 4,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "visualization": "tiles",
+          "tileSettings": {
+            "titleContent": {
+              "columnMatch": "Column"
+            },
+            "rightContent": {
+              "columnMatch": "Value",
+              "formatter": 12,
+              "formatOptions": {
+                "palette": "auto"
+              }
+            },
+            "showBorder": false
+          }
+        },
+        "name": "query - 4"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## NoShow - End - Current WVD Sessions, host availability"
+        },
+        "conditionalVisibility": {
+          "parameterName": "noshow",
+          "comparison": "isEqualTo",
+          "value": "noshow"
+        },
+        "name": "text - NoShow - End - Current WVD  - Copy"
+      },
+      {
+        "type": 11,
+        "content": {
+          "version": "LinkItem/1.0",
+          "style": "tabs",
+          "links": [
+            {
+              "id": "0a45e027-be2e-401a-9998-3472847768a1",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Server Performance",
+              "subTarget": "server",
+              "style": "link"
+            },
+            {
+              "id": "11a44051-5808-4939-b7d7-58200d7fc2f0",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "User Performance",
+              "subTarget": "user",
+              "style": "link"
+            },
+            {
+              "id": "62e1fea6-9397-4f13-bdc4-6915e88d5d68",
+              "cellValue": "selectedTab",
+              "linkTarget": "parameter",
+              "linkLabel": "Event Logs",
+              "subTarget": "event",
+              "style": "link"
+            }
+          ]
+        },
+        "name": "links - 3"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## NoShow - Begin - Session Host Performance"
+        },
+        "conditionalVisibility": {
+          "parameterName": "noshow",
+          "comparison": "isEqualTo",
+          "value": "noshow"
+        },
+        "name": "text - NoShow - Begin - Session Host Performance"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "InsightsMetrics\r\n| where Namespace == \"Processor\"\r\n| where Name == \"UtilizationPercentage\"\r\n| summarize minCPU=min(Val), maxCPU=max(Val), avgCPU=avg(Val) by _ResourceId\r\n| join(\r\nInsightsMetrics\r\n| where Namespace == \"Processor\"\r\n| where Name == \"UtilizationPercentage\"\r\n| make-series CPUTimeline = avg(Val) default = 0 on TimeGenerated from {TimeRange:start} to {TimeRange:end} step {TimeRange:grain} by _ResourceId) on _ResourceId\r\n| join(\r\nPerf\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Total Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by _ResourceId\r\n| project _ResourceId,TotalSessions= CounterValue) on _ResourceId\r\n| join (\r\nPerf\r\n| where ObjectName == \"Terminal Services\" \r\n| where CounterName == \"Active Sessions\" \r\n| summarize arg_max(TimeGenerated, *) by _ResourceId\r\n| project _ResourceId,ActiveSessions=CounterValue ) on _ResourceId\r\n| project Computer=_ResourceId, CPUTimeline, minCPU,maxCPU,avgCPU,ActiveSessions, TotalSessions\r\n| sort by avgCPU desc\r\n",
+          "size": 2,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "CPUTimeline",
+                "formatter": 21,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "green"
+                }
+              },
+              {
+                "columnMatch": "minCPU",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              },
+              {
+                "columnMatch": "maxCPU",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              },
+              {
+                "columnMatch": "avgCPU",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              },
+              {
+                "columnMatch": "ActiveSessions",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 14,
+                  "palette": "blue"
+                }
+              },
+              {
+                "columnMatch": "TotalSessions",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 14,
+                  "palette": "blue"
+                }
+              },
+              {
+                "columnMatch": "Trend",
+                "formatter": 21,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "green",
+                  "aggregation": "Average"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              }
+            ],
+            "rowLimit": 1000,
+            "filter": true
+          }
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "server"
+        },
+        "name": "query - Session Host Performance"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## NoShow - End - Session Host Performance"
+        },
+        "conditionalVisibility": {
+          "parameterName": "noshow",
+          "comparison": "isEqualTo",
+          "value": "noshow"
+        },
+        "name": "text - NoShow - End - Session Host Performance"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## NoShow - Begin - User Performance Metrics"
+        },
+        "conditionalVisibility": {
+          "parameterName": "noshow",
+          "comparison": "isEqualTo",
+          "value": "noshow"
+        },
+        "name": "text - NoShow - Begin - User Performance Metrics"
+      },
+      {
+        "type": 11,
+        "content": {
+          "version": "LinkItem/1.0",
+          "style": "tabs",
+          "links": [
+            {
+              "id": "de0825a2-ef59-4f96-a531-e371c3ed9b71",
+              "cellValue": "user",
+              "linkTarget": "parameter",
+              "linkLabel": "Profile Load Time",
+              "subTarget": "userprofile",
+              "style": "link"
+            },
+            {
+              "id": "1f556da8-c748-4116-b19e-cfb942aebdc5",
+              "cellValue": "user",
+              "linkTarget": "parameter",
+              "linkLabel": "Inbound/Outbound Network",
+              "subTarget": "inout",
+              "style": "link"
+            },
+            {
+              "id": "94562458-6e53-4ed5-be00-941913f12971",
+              "cellValue": "user",
+              "linkTarget": "parameter",
+              "linkLabel": "TCP/UDP RTT",
+              "subTarget": "rtt",
+              "style": "link"
+            },
+            {
+              "id": "36b4f98b-8808-412d-978c-8a6b94c89398",
+              "cellValue": "user",
+              "linkTarget": "parameter",
+              "linkLabel": "Processor by User",
+              "subTarget": "processor",
+              "style": "link"
+            }
+          ]
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "user"
+        },
+        "name": "links - User Performance Tabs"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "Perf\r\n| where ObjectName == \"Process\"\r\n| join\r\n(\r\nVMProcess\r\n| where UserName !contains \"system\" and UserName !contains \"service\"\r\n| extend InstanceName = ExecutableName\r\n| project TimeGenerated, InstanceName, Computer, UserName, UserDomain\r\n)\r\non InstanceName\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 10m), InstanceName, CounterName, UserName, Computer=_ResourceId\r\n| sort by AggregatedValue desc",
+          "size": 2,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "customColumnWidthSetting": "18ch"
+                }
+              },
+              {
+                "columnMatch": "AggregatedValue",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "processor"
+          }
+        ],
+        "name": "query - 9"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "## Profile Load Times\r\n\r\nLoad times by all hosts"
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "userprofile"
+          }
+        ],
+        "name": "text - 19"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent\r\n| where EventID == 4624\r\n| where AccountType == \"User\"\r\n| where LogonType == 3\r\n| project UserName = TargetAccount, Computer, LogonTime=TimeGenerated, TimeCollected\r\n| extend UserName = replace(@\"CORP.DOMAIN.COM\\\\\", @\"\", UserName)\r\n| extend UserName = replace(@\"CORP\\\\\", @\"\", UserName)\r\n| join(Event\r\n| where Source == 'FSLogix-Apps'\r\n| where EventID == 25\r\n| parse RenderedDescription with * \"Username: \" UserName:string \" \"*\r\n| project UserName, Computer, LoadTime=TimeGenerated) on UserName, Computer\r\n| extend ProfileLoad = datetime_diff('second',LoadTime,LogonTime)\r\n| where ProfileLoad > 0\r\n| where ProfileLoad < 1800\r\n//| where Computer has \"prd-eus-poolprefix\"\r\n| summarize avg(ProfileLoad), min(ProfileLoad), max(ProfileLoad)",
+          "size": 4,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "avg_ProfileLoad",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 60,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 24,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              },
+              {
+                "columnMatch": "min_ProfileLoad",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 60,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 24,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              },
+              {
+                "columnMatch": "max_ProfileLoad",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 60,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 24,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              },
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "customColumnWidthSetting": "18ch"
+                }
+              },
+              {
+                "columnMatch": "AggregatedValue",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "userprofile"
+          }
+        ],
+        "name": "query - 9 - Copy"
+      },
+      {
+        "type": 1,
+        "content": {
+          "json": "\r\n\r\n### Load times by user"
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "userprofile"
+          }
+        ],
+        "name": "text - 19 - Copy"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "Perf\r\n| where ObjectName == \"RemoteFX Network\"\r\n| where CounterName == \"Current TCP RTT\" or CounterName == \"Current UDP RTT\"\r\n| summarize AggregatedValue = avg(CounterValue) by bin(TimeGenerated, 1h), Computer=_ResourceId, InstanceName",
+          "size": 2,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "customColumnWidthSetting": "18ch"
+                }
+              }
+            ]
+          }
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "rtt"
+          }
+        ],
+        "name": "query - 8"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "SecurityEvent\r\n| where EventID == 4624\r\n| where AccountType == \"User\"\r\n| where LogonType == 3\r\n| project UserName = TargetAccount, Computer, LogonTime=TimeGenerated, TimeCollected\r\n| extend UserName = replace(@\"CORP.DOMAIN.COM\\\\\", @\"\", UserName)\r\n| extend UserName = replace(@\"CORP\\\\\", @\"\", UserName)\r\n| join(Event\r\n| where Source == 'FSLogix-Apps'\r\n| where EventID == 25\r\n| parse RenderedDescription with * \"Username: \" UserName:string \" \"*\r\n| project UserName, Computer, LoadTime=TimeGenerated) on UserName, Computer\r\n| extend ProfileLoad = datetime_diff('second',LoadTime,LogonTime)\r\n| where ProfileLoad > 0\r\n| where ProfileLoad < 1800\r\n| summarize avg(ProfileLoad), min(ProfileLoad), max(ProfileLoad) by UserName",
+          "size": 2,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "avg_ProfileLoad",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 60,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 24,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              },
+              {
+                "columnMatch": "min_ProfileLoad",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 60,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 24,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              },
+              {
+                "columnMatch": "max_ProfileLoad",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 60,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 24,
+                  "options": {
+                    "style": "decimal"
+                  }
+                }
+              },
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "customColumnWidthSetting": "18ch"
+                }
+              },
+              {
+                "columnMatch": "AggregatedValue",
+                "formatter": 8,
+                "formatOptions": {
+                  "min": 0,
+                  "max": 100,
+                  "palette": "greenRed"
+                },
+                "numberFormat": {
+                  "unit": 1,
+                  "options": {
+                    "style": "decimal",
+                    "useGrouping": false
+                  }
+                }
+              }
+            ]
+          }
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "userprofile"
+          }
+        ],
+        "name": "query - 9 - Copy - Copy"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "parameters": [
+            {
+              "id": "12a483cd-11a9-4fa4-b646-0b4796b095e9",
+              "version": "KqlParameterItem/1.0",
+              "name": "Computer",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "VMConnection\r\n| distinct _ResourceId",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::1",
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 86400000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "863abf44-36f6-4129-876f-77e8743ecfdb",
+              "version": "KqlParameterItem/1.0",
+              "name": "Direction",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "VMConnection\r\n| distinct Direction",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::1",
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 86400000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces"
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "inout"
+          }
+        ],
+        "name": "parameters - 6"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "VMConnection\r\n| join(\r\n    VMProcess\r\n        | where UserName !contains \"system\" and UserName !contains \"service\"\r\n        | extend ProcessName = ExecutableName\r\n        | project TimeGenerated, ProcessName, _ResourceId, UserName, UserDomain) on ProcessName\r\n| project-away MaliciousIp, IndicatorThreatType, Description,TLPLevel, Confidence, Severity, FirstReportedDateTime,LastReportedDateTime,IsActive,ReportReferenceLink,AdditionalInformation\r\n| extend Details=pack_all()\r\n| project TimeGenerated, Computer=_ResourceId, UserName, Direction,ProcessName,RemoteDnsQuestions,RemoteDnsCanonicalNames, BytesSent,BytesReceived, ResponseTimeSum, Details\r\n| where Computer in~ ({Computer}) or '*' in~ ({Computer})\r\n| where Direction in ({Direction}) or '*' in ({Direction})",
+          "size": 2,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "customColumnWidthSetting": "18ch"
+                }
+              },
+              {
+                "columnMatch": "Details",
+                "formatter": 7,
+                "formatOptions": {
+                  "linkTarget": "CellDetails",
+                  "linkLabel": "🔍 View Details",
+                  "linkIsContextBlade": true
+                }
+              }
+            ]
+          }
+        },
+        "conditionalVisibilities": [
+          {
+            "parameterName": "selectedTab",
+            "comparison": "isEqualTo",
+            "value": "user"
+          },
+          {
+            "parameterName": "user",
+            "comparison": "isEqualTo",
+            "value": "inout"
+          }
+        ],
+        "name": "query - 5"
+      },
+      {
+        "type": 9,
+        "content": {
+          "version": "KqlParameterItem/1.0",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "parameters": [
+            {
+              "id": "c82da0a2-3a50-4f39-8d14-a176574aa78e",
+              "version": "KqlParameterItem/1.0",
+              "name": "Computer",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Heartbeat\r\n| distinct Computer",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::1",
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 86400000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "401200c4-b5fc-4d4f-a631-0626eabcd413",
+              "version": "KqlParameterItem/1.0",
+              "name": "EventLog",
+              "type": 5,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Event\r\n| distinct EventLog\r\n| where (EventLog == 'Microsoft-Windows-RemoteDesktopServices-SessionServices/Operational')\r\nor (EventLog == 'System')",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::1",
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 86400000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            },
+            {
+              "id": "70fc28ec-067c-406f-8d22-2ad2724b5b94",
+              "version": "KqlParameterItem/1.0",
+              "name": "Source",
+              "type": 7,
+              "isRequired": true,
+              "multiSelect": true,
+              "quote": "'",
+              "delimiter": ",",
+              "query": "Event\r\n| where EventLog in ({EventLog}) or '*' in ({EventLog})\r\n| distinct Source\r\n| where (Source == 'Microsoft-Windows-RemoteDesktopServices-SessionServices')\r\nor (Source == 'Microsoft-Windows-TerminalServices-TSFairShare-Events')\r\nor (Source == 'Microsoft-Windows-TerminalServices-RemoteConnectionManager')",
+              "crossComponentResources": [
+                "{Workspace}"
+              ],
+              "value": [
+                "value::all"
+              ],
+              "typeSettings": {
+                "additionalResourceOptions": [
+                  "value::1",
+                  "value::all"
+                ]
+              },
+              "timeContext": {
+                "durationMs": 86400000
+              },
+              "queryType": 0,
+              "resourceType": "microsoft.operationalinsights/workspaces"
+            }
+          ],
+          "style": "pills",
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces"
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "event"
+        },
+        "name": "parameters - Event Log Parameters"
+      },
+      {
+        "type": 3,
+        "content": {
+          "version": "KqlItem/1.0",
+          "query": "Event\r\n| where Computer in ({Computer}) or '*' in ({Computer})\r\n| where EventLog in ({EventLog}) or '*' in ({EventLog})\r\n| where Source in ({Source}) or '*' in ({Source})\r\n| extend Computer=_ResourceId\r\n| extend Pack=pack_all()\r\n| extend TimeFromNow = now() - TimeGenerated\r\n| extend TimeAgo = strcat(case(TimeFromNow < 2m, strcat(toint(TimeFromNow / 1m), ' seconds'), TimeFromNow < 2h, strcat(toint(TimeFromNow / 1m), ' minutes'), TimeFromNow < 2d, strcat(toint(TimeFromNow / 1h), ' hours'), strcat(toint(TimeFromNow / 1d), ' days')), ' ago') \r\n| project [\"Time\"]=strcat('🕒', TimeAgo), EventLog, Computer, RenderedDescription, UserName, [\"Details\"]=Pack",
+          "size": 2,
+          "timeContext": {
+            "durationMs": 86400000
+          },
+          "showExportToExcel": true,
+          "queryType": 0,
+          "resourceType": "microsoft.operationalinsights/workspaces",
+          "crossComponentResources": [
+            "{Workspace}"
+          ],
+          "gridSettings": {
+            "formatters": [
+              {
+                "columnMatch": "Computer",
+                "formatter": 0,
+                "formatOptions": {
+                  "customColumnWidthSetting": "18ch"
+                }
+              },
+              {
+                "columnMatch": "Details",
+                "formatter": 7,
+                "formatOptions": {
+                  "linkTarget": "CellDetails",
+                  "linkLabel": "🔍 View Details",
+                  "linkIsContextBlade": true
+                }
+              }
+            ],
+            "filter": true
+          }
+        },
+        "conditionalVisibility": {
+          "parameterName": "selectedTab",
+          "comparison": "isEqualTo",
+          "value": "event"
+        },
+        "name": "query - Event Log"
+      }
+    ],
+    "fallbackResourceIds": [
+      "Azure Monitor"
+    ],
+    "$schema": "https://github.com/Microsoft/Application-Insights-Workbooks/blob/master/schema/workbook.json"
+  }
